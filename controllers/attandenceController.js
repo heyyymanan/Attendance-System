@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
+import Employee from "../models/Employee.js";
 
-let mockLogs = [];
 
 export const logAttendance = asyncHandler(async (req, res) => {
     const { uid, timestamp, status, message } = req.body;
@@ -11,30 +11,60 @@ export const logAttendance = asyncHandler(async (req, res) => {
         return res.status(400).json({ success: false, error: "Invalid data" });
     }
 
-    const log = {
-        uid,
+    // Find employee by UID
+    let employee = await Employee.findOne({ uid });
+
+    if (!employee) {
+        return res.status(404).json({ success: false, error: "Employee not found" });
+    }
+
+    // Add log to employee's logs array
+    const newLog = {
         timestamp,
         status: status || "offline",
         message: message || "Log received successfully",
     };
 
-    mockLogs.push(log);
+    employee.logs.push(newLog);
+    await employee.save();
 
     res.status(200).json({
         success: true,
         msg: "Attendance logged successfully!",
-        data: log,
+        data: newLog,
     });
 });
 
 export const getLogs = asyncHandler(async (req, res) => {
+    const employees = await Employee.find();
 
-
-    // console.log("📤 Fetching all logs");
     res.status(200).json({
         success: true,
-        count: mockLogs.length,
-        data: mockLogs,
+        count: employees.length,
+        data: employees,
     });
-
 });
+
+
+
+export const create = asyncHandler(async (req, res) => {
+    const employees = [
+        { uid: "B3D07634", name: "Rabil Khan" },
+        { uid: "E3935EFS", name: "Manan Vyas" },
+        { uid: "EMP003", name: "Charlie" },
+        { uid: "EMP004", name: "David" },
+        { uid: "EMP005", name: "Eve" },
+    ];
+
+    // Only insert employees if they don't exist
+    for (const emp of employees) {
+        const exists = await Employee.findOne({ uid: emp.uid });
+        if (!exists) {
+            await Employee.create(emp);
+            console.log(`✅ Employee ${emp.name} created`);
+        }
+    }
+
+    res.status(200).json({ success: true, msg: "Employees created (if not existed)" });
+});
+
