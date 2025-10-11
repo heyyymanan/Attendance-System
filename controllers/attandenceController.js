@@ -1,18 +1,22 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import Employee from "../models/Employee.js";
 
+// Utility to normalize UID (remove spaces and make uppercase for consistency)
+const normalizeUid = (uid) => uid.replace(/\s+/g, "").toUpperCase();
 
 export const logAttendance = asyncHandler(async (req, res) => {
-    const { uid, timestamp, status, message } = req.body;
-
-    console.log("📩 Attendance data received:", req.body);
+    let { uid, timestamp, status, message } = req.body;
 
     if (!uid || !timestamp) {
         return res.status(400).json({ success: false, error: "Invalid data" });
     }
 
-    // Find employee by UID
-    let employee = await Employee.findOne({ uid });
+    uid = normalizeUid(uid); // remove spaces and normalize
+
+    console.log("📩 Attendance data received:", { uid, timestamp, status, message });
+
+    // Find employee by normalized UID
+    const employee = await Employee.findOne({ uid });
 
     if (!employee) {
         return res.status(404).json({ success: false, error: "Employee not found" });
@@ -20,7 +24,7 @@ export const logAttendance = asyncHandler(async (req, res) => {
 
     // Add log to employee's logs array
     const newLog = {
-        timestamp,
+        timestamp: timestamp.toString(), // ensure it's a string
         status: status || "offline",
         message: message || "Log received successfully",
     };
@@ -45,9 +49,7 @@ export const getLogs = asyncHandler(async (req, res) => {
     });
 });
 
-
-
-export const create = asyncHandler(async (req, res) => {
+export const createEmployees = asyncHandler(async (req, res) => {
     const employees = [
         { uid: "B3D07634", name: "Rabil Khan" },
         { uid: "E3935EFS", name: "Manan Vyas" },
@@ -56,15 +58,16 @@ export const create = asyncHandler(async (req, res) => {
         { uid: "EMP005", name: "Eve" },
     ];
 
-    // Only insert employees if they don't exist
     for (const emp of employees) {
-        const exists = await Employee.findOne({ uid: emp.uid });
+        const exists = await Employee.findOne({ uid: normalizeUid(emp.uid) });
         if (!exists) {
-            await Employee.create(emp);
+            await Employee.create({
+                ...emp,
+                uid: normalizeUid(emp.uid)
+            });
             console.log(`✅ Employee ${emp.name} created`);
         }
     }
 
     res.status(200).json({ success: true, msg: "Employees created (if not existed)" });
 });
-

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema({
     timestamp: {
-        type: String,
+        type: String, // Keeping as string
         required: true,
     },
     status: {
@@ -13,7 +13,7 @@ const logSchema = new mongoose.Schema({
         type: String,
         default: "Log received successfully",
     },
-}, { _id: false }); // optional: no separate _id for each log
+}, { _id: false }); // no separate _id for logs
 
 const employeeSchema = new mongoose.Schema({
     uid: {
