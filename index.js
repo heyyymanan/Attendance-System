@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import mongoConnect from "./utils/mongoConnect.js";
+import fs from "fs";
 
 const app = express();
 app.use(cors());
