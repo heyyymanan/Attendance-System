@@ -3,35 +3,53 @@ dotenv.config();
 
 export const validateESP32Token = (req, res, next) => {
   try {
-    const token = req.headers["x-esp32-token"]; // <-- ESP32 must send this header
+    console.log("🔒 [Middleware] Validating ESP32 token...");
 
+    const token = req.headers["x-esp32-token"];
     if (!token) {
+      console.log("❌ [Middleware] Missing token in request headers.");
       return res.status(401).json({ success: false, message: "Missing ESP32 token" });
     }
 
-    // Just a simple decryption formula (same logic used in ESP32)
     const secret = process.env.ESP32_SECRET_KEY || "mySecretKey";
-    const decoded = decryptToken(token, secret);
+    console.log("🧩 [Middleware] Using secret key length:", secret.length);
+    console.log("📦 [Middleware] Received token:", token);
 
-    if (decoded !== process.env.ESP32_DEVICE_ID) {
+    // Try to decrypt
+    const decoded = decryptToken(token, secret);
+    console.log("🔓 [Middleware] Decrypted token:", decoded);
+
+    const expected = process.env.ESP32_DEVICE_ID;
+    console.log("🎯 [Middleware] Expected device ID:", expected);
+
+    if (decoded !== expected) {
+      console.log("🚫 [Middleware] Invalid ESP32 token — mismatch detected!");
       return res.status(403).json({ success: false, message: "Invalid ESP32 token" });
     }
 
+    console.log("✅ [Middleware] Token validation successful. Proceeding to next middleware...");
     next();
   } catch (err) {
-    console.error("Token validation error:", err.message);
+    console.error("💥 [Middleware Error] Token validation failed:", err.message);
     return res.status(500).json({ success: false, message: "Token validation failed" });
   }
 };
 
-// Simple decrypt function (reverse + shift)
+// Simple reversible decryption formula
 function decryptToken(encrypted, key) {
-  if (!encrypted || !key) throw new Error("Invalid input for decryptToken");
-  
+  if (!encrypted || !key) {
+    console.error("⚠️ [Decryptor] Missing input data:", { encrypted, key });
+    throw new Error("Invalid input for decryptToken");
+  }
+
+  console.log("🔧 [Decryptor] Starting decryption...");
   let result = "";
   for (let i = 0; i < encrypted.length; i++) {
     const charCode = encrypted.charCodeAt(i) - key.length;
     result += String.fromCharCode(charCode);
   }
-  return result.split("").reverse().join("");
+
+  const finalDecoded = result.split("").reverse().join("");
+  console.log("🧠 [Decryptor] Decryption complete:", finalDecoded);
+  return finalDecoded;
 }
