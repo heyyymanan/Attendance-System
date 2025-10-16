@@ -1,6 +1,6 @@
 // verifyEspMiddleware.js
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({quiet:true});
 
 const SECRET_KEY = process.env.ESP_SECRET_KEY;
 const DEVICE_ID = process.env.ESP_DEVICE_ID;
