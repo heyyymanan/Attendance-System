@@ -21,20 +21,14 @@ function decryptToken(token, key) {
 export function validateESP32Token(req, res, next) {
   try {
     const token = req.headers["x-esp32-token"];
-    console.log("📦 [Middleware] Received token:", token);
-
     if (!token) {
       console.log("🚫 [Middleware] No token found in header!");
       return res.status(401).json({ success: false, message: "ESP token missing" });
     }
 
-    console.log("🧩 [Middleware] Using secret key length:", SECRET_KEY.length);
-    console.log("🔒 [Middleware] Validating ESP32 token...");
 
     const decrypted = decryptToken(token, SECRET_KEY);
 
-    console.log("🔓 [Middleware] Decrypted token:", decrypted);
-    console.log("🎯 [Middleware] Expected device ID:", DEVICE_ID);
 
     if (decrypted !== DEVICE_ID) {
       console.log("🚫 [Middleware] Invalid ESP32 token — mismatch detected!");
