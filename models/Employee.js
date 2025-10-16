@@ -1,17 +1,21 @@
 import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema({
-    timestamp: {
-        type: String, // Keeping as string
+    date: {
+        type: String, // e.g., "2025-10-16"
+        required: true,
+    },
+    time: {
+        type: String, // e.g., "04:35:22 PM"
         required: true,
     },
     status: {
         type: String,
         default: "offline",
     },
-    message: {
+    day: {
         type: String,
-        default: "Log received successfully",
+        default: "Day Not Fetched",
     },
 }, { _id: false }); // no separate _id for logs
 

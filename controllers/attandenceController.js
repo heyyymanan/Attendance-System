@@ -11,22 +11,34 @@ export const logAttendance = asyncHandler(async (req, res) => {
         return res.status(400).json({ success: false, error: "Invalid data" });
     }
 
-    uid = normalizeUid(uid); // remove spaces and normalize
-
+    uid = normalizeUid(uid);
     console.log("📩 Attendance data received:", { uid, timestamp, status, message });
 
-    // Find employee by normalized UID
     const employee = await Employee.findOne({ uid });
 
     if (!employee) {
         return res.status(404).json({ success: false, error: "Employee not found" });
     }
 
-    // Add log to employee's logs array
+    // Convert timestamp safely
+    let dateObj = new Date(timestamp);
+    if (isNaN(dateObj.getTime())) {
+        console.warn("⚠️ Invalid timestamp received, using current India time instead");
+        dateObj = new Date();
+    }
+
+    const indiaDate = dateObj.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
+    const indiaTime = dateObj.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
+    const currentDay = dateObj.toLocaleDateString("en-IN", {
+        weekday: "long",
+        timeZone: "Asia/Kolkata"
+    });
+
     const newLog = {
-        timestamp: timestamp.toString(), // ensure it's a string
+        date: indiaDate,
+        time: indiaTime,
         status: status || "offline",
-        message: message || "Log received successfully",
+        day: currentDay,
     };
 
     employee.logs.push(newLog);
@@ -38,6 +50,7 @@ export const logAttendance = asyncHandler(async (req, res) => {
         data: newLog,
     });
 });
+
 
 export const getLogs = asyncHandler(async (req, res) => {
     const employees = await Employee.find();
