@@ -1,55 +1,50 @@
+// verifyEspMiddleware.js
 import dotenv from "dotenv";
 dotenv.config();
 
-export const validateESP32Token = (req, res, next) => {
+const SECRET_KEY = process.env.ESP_SECRET_KEY;
+const DEVICE_ID = process.env.ESP_DEVICE_ID;
+
+// ----------------- Decryption Logic (XOR + Hex Decode) -----------------
+function decryptToken(token, key) {
+  let decrypted = "";
+  for (let i = 0; i < token.length; i += 2) {
+    const hexPair = token.substring(i, i + 2);
+    const byte = parseInt(hexPair, 16);
+    const keyChar = key.charCodeAt((i / 2) % key.length);
+    decrypted += String.fromCharCode(byte ^ keyChar);
+  }
+  return decrypted;
+}
+
+// ----------------- Middleware -----------------
+export function validateESP32Token(req, res, next) {
   try {
-    console.log("🔒 [Middleware] Validating ESP32 token...");
-
     const token = req.headers["x-esp32-token"];
-    if (!token) {
-      console.log("❌ [Middleware] Missing token in request headers.");
-      return res.status(401).json({ success: false, message: "Missing ESP32 token" });
-    }
-
-    const secret = process.env.ESP32_SECRET_KEY || "mySecretKey";
-    console.log("🧩 [Middleware] Using secret key length:", secret.length);
     console.log("📦 [Middleware] Received token:", token);
 
-    // Try to decrypt
-    const decoded = decryptToken(token, secret);
-    console.log("🔓 [Middleware] Decrypted token:", decoded);
+    if (!token) {
+      console.log("🚫 [Middleware] No token found in header!");
+      return res.status(401).json({ success: false, message: "ESP token missing" });
+    }
 
-    const expected = process.env.ESP32_DEVICE_ID;
-    console.log("🎯 [Middleware] Expected device ID:", expected);
+    console.log("🧩 [Middleware] Using secret key length:", SECRET_KEY.length);
+    console.log("🔒 [Middleware] Validating ESP32 token...");
 
-    if (decoded !== expected) {
+    const decrypted = decryptToken(token, SECRET_KEY);
+
+    console.log("🔓 [Middleware] Decrypted token:", decrypted);
+    console.log("🎯 [Middleware] Expected device ID:", DEVICE_ID);
+
+    if (decrypted !== DEVICE_ID) {
       console.log("🚫 [Middleware] Invalid ESP32 token — mismatch detected!");
       return res.status(403).json({ success: false, message: "Invalid ESP32 token" });
     }
 
-    console.log("✅ [Middleware] Token validation successful. Proceeding to next middleware...");
+    console.log("✅ [Middleware] ESP32 token verified successfully!");
     next();
-  } catch (err) {
-    console.error("💥 [Middleware Error] Token validation failed:", err.message);
-    return res.status(500).json({ success: false, message: "Token validation failed" });
+  } catch (error) {
+    console.error("💥 [Middleware] Verification error:", error.message);
+    return res.status(500).json({ success: false, message: "ESP verification failed" });
   }
-};
-
-// Simple reversible decryption formula
-function decryptToken(encrypted, key) {
-  if (!encrypted || !key) {
-    console.error("⚠️ [Decryptor] Missing input data:", { encrypted, key });
-    throw new Error("Invalid input for decryptToken");
-  }
-
-  console.log("🔧 [Decryptor] Starting decryption...");
-  let result = "";
-  for (let i = 0; i < encrypted.length; i++) {
-    const charCode = encrypted.charCodeAt(i) - key.length;
-    result += String.fromCharCode(charCode);
-  }
-
-  const finalDecoded = result.split("").reverse().join("");
-  console.log("🧠 [Decryptor] Decryption complete:", finalDecoded);
-  return finalDecoded;
 }
