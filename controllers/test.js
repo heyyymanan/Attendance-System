@@ -10,7 +10,7 @@ export const create = asyncHandler(async (req, res) => {
         { uid: "EMP005", name: "Eve" },
     ];
 
-    // Only insert employees if they don't exist
+ 
     for (const emp of employees) {
         const exists = await Employee.findOne({ uid: emp.uid });
         if (!exists) {

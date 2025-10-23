@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 const logSchema = new mongoose.Schema({
     date: {
-        type: String, // e.g., "2025-10-16"
+        type: String, 
         required: true,
     },
     time: {
-        type: String, // e.g., "04:35:22 PM"
+        type: String, 
         required: true,
     },
     status: {
@@ -17,7 +17,7 @@ const logSchema = new mongoose.Schema({
         type: String,
         default: "Day Not Fetched",
     },
-}, { _id: false }); // no separate _id for logs
+}, { _id: false }); 
 
 const employeeSchema = new mongoose.Schema({
     uid: {
@@ -29,7 +29,7 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    logs: [logSchema], // array of logs
+    logs: [logSchema], 
 }, {
     timestamps: true,
 });

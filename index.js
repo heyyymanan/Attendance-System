@@ -18,13 +18,13 @@ const PORT = 1000;
 
 const startServer = async () => {
     try {
-        await mongoConnect(); // wait for DB connection
-        console.log("✅ MongoDB Connected");
+        await mongoConnect(); 
+        console.log(" MongoDB Connected");
 
-        // Register routes AFTER DB is ready
+        
         app.use("/api/attendance", attendanceRoutes);
 
-        app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+        app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
     } catch (err) {
         console.error("❌ MongoDB Connection Failed:", err);
         process.exit(1);
