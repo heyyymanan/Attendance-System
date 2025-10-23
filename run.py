@@ -6,25 +6,17 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from typing import List, Dict, Any, Optional
 
-# --- Constants for Configuration & Styling ---
+API_URL = "https://attendanceendpoint.co.in/api/attendance/logs"
+API_TIMEOUT = 15
 
-# API Configuration
-API_URL = "https://shreejiattendance.run.place/api/attendance/logs"
-API_TIMEOUT = 15  # seconds
+ESP_SECRET = "***"
+SERVER_SECRET = "***"
 
-# --- ADD SECRETS HERE ---
-# These must match the secrets on your ESP32 device
-ESP_SECRET = "shreeji_AttenDance_esp_Sec"
-SERVER_SECRET = "shreeji_aTTENDANCE_SERVER_SEC"
-
-# File & Salary Configuration
 OUTPUT_FILENAME = "Pivoted_Attendance_Report_with_Salary.xlsx"
-COMPANY_NAME = "Shreeji Wood"
+COMPANY_NAME = "Shreeji Remedies"
 REPORT_TITLE = "Monthly Attendance & Salary Report"
-FULL_DAY_HOURS = 8 # Define how many hours constitute a full working day
+FULL_DAY_HOURS = 8
 
-# --- Define Employee Financial Data ---
-# Use employee 'uid' as the key. 'default' is a fallback value.
 EMPLOYEE_MONTHLY_SALARIES = {
     '1': 15000, '2': 18000, '3': 16500, '10': 16000, 'default': 12000
 }
@@ -34,58 +26,49 @@ EMPLOYEE_LOANS = {'default': 0}
 EMPLOYEE_PREMIUMS = {'default': 0}
 
 
-# --- STYLES ---
+HEADER_FILL = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
+SUBHEADER_FILL = PatternFill(start_color="34495E", end_color="34495E", fill_type="solid")
+CI_HEADER_FILL = PatternFill(start_color="D5F5E3", end_color="D5F5E3", fill_type="solid")
+CO_HEADER_FILL = PatternFill(start_color="FADBD8", end_color="FADBD8", fill_type="solid")
+MINS_HEADER_FILL = PatternFill(start_color="D6EAF8", end_color="D6EAF8", fill_type="solid")
+SUNDAY_FILL = PatternFill(start_color="FFE5E5", end_color="FFE5E5", fill_type="solid")
+TODAY_FILL = PatternFill(start_color="FCF3CF", end_color="FCF3CF", fill_type="solid")
+ALT_COL_FILL = PatternFill(start_color="ECF0F1", end_color="ECF0F1", fill_type="solid")
+FINANCIAL_HEADER_FILL = PatternFill(start_color="F39C12", end_color="F39C12", fill_type="solid")
+DEDUCTIONS_HEADER_FILL = PatternFill(start_color="27AE60", end_color="27AE60", fill_type="solid")
+NAME_CELL_FILL = PatternFill(start_color="F5B7B1", end_color="F5B7B1", fill_type="solid")
+IN_HAND_SALARY_FILL = PatternFill(start_color="A9DFBF", end_color="A9DFBF", fill_type="solid")
 
-# Fills
-HEADER_FILL = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid") # Dark Slate Blue
-SUBHEADER_FILL = PatternFill(start_color="34495E", end_color="34495E", fill_type="solid") # Lighter Slate Blue
-CI_HEADER_FILL = PatternFill(start_color="D5F5E3", end_color="D5F5E3", fill_type="solid") # Light Green
-CO_HEADER_FILL = PatternFill(start_color="FADBD8", end_color="FADBD8", fill_type="solid") # Light Red
-MINS_HEADER_FILL = PatternFill(start_color="D6EAF8", end_color="D6EAF8", fill_type="solid") # Light Blue
-SUNDAY_FILL = PatternFill(start_color="FFE5E5", end_color="FFE5E5", fill_type="solid") # Light Red for Sunday
-TODAY_FILL = PatternFill(start_color="FCF3CF", end_color="FCF3CF", fill_type="solid") # Light Yellow
-ALT_COL_FILL = PatternFill(start_color="ECF0F1", end_color="ECF0F1", fill_type="solid") # Light Grey/Blue for columns
-FINANCIAL_HEADER_FILL = PatternFill(start_color="F39C12", end_color="F39C12", fill_type="solid") # Orange for Financial Summary
-DEDUCTIONS_HEADER_FILL = PatternFill(start_color="27AE60", end_color="27AE60", fill_type="solid") # Green for Deductions
-# New styles from image
-NAME_CELL_FILL = PatternFill(start_color="F5B7B1", end_color="F5B7B1", fill_type="solid") # Light Red/Orange
-IN_HAND_SALARY_FILL = PatternFill(start_color="A9DFBF", end_color="A9DFBF", fill_type="solid") # Muted Green
-
-# Fonts
 HEADER_FONT = Font(name="Calibri", size=18, bold=True, color="FFFFFF")
 SUBTITLE_FONT = Font(name="Calibri", size=11, italic=True, color="FFFFFF")
 TABLE_HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-SUNDAY_DATE_FONT = Font(name="Calibri", size=11, bold=True, color="943126") # Dark Red
-TODAY_DATE_FONT = Font(name="Calibri", size=11, bold=True, color="B7950B") # Dark Yellow/Gold
-CI_FONT = Font(name="Calibri", color="287431", bold=True) # Dark Green
-CO_FONT = Font(name="Calibri", color="943126", bold=True) # Dark Red
-MINS_FONT = Font(name="Calibri", color="1B4F72", bold=True) # Dark Blue
+SUNDAY_DATE_FONT = Font(name="Calibri", size=11, bold=True, color="943126")
+TODAY_DATE_FONT = Font(name="Calibri", size=11, bold=True, color="B7950B")
+CI_FONT = Font(name="Calibri", color="287431", bold=True)
+CO_FONT = Font(name="Calibri", color="943126", bold=True)
+MINS_FONT = Font(name="Calibri", color="1B4F72", bold=True)
 DATA_FONT = Font(name="Calibri", size=11)
 CI_DATA_FONT = Font(name="Calibri", size=11, color="287431")
 CO_DATA_FONT = Font(name="Calibri", size=11, color="943126")
-IN_HAND_SALARY_HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="145A32") # Dark Green for contrast
+IN_HAND_SALARY_HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="145A32")
 
-# Borders
-THIN_BORDER_SIDE = Side(style="thin", color="BDC3C7") # Grey
+THIN_BORDER_SIDE = Side(style="thin", color="BDC3C7")
 THIN_BORDER = Border(left=THIN_BORDER_SIDE, right=THIN_BORDER_SIDE, top=THIN_BORDER_SIDE, bottom=THIN_BORDER_SIDE)
 
-# Alignment
 CENTER_ALIGN = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
-# --- Token Generation ---
 def generate_auth_token(esp_secret: str, server_secret: str) -> str:
     if not esp_secret or not server_secret or "YOUR_" in esp_secret or "YOUR_" in server_secret:
-        print("⚠️ [Auth] Secrets are not set. Skipping token generation.")
+        print("  Secrets are not set. Skipping token generation.")
         return ""
     token_parts = [f'{(ord(e) ^ ord(server_secret[i % len(server_secret)])):02x}' for i, e in enumerate(esp_secret)]
     return "".join(token_parts)
 
-# --- API Data Fetching ---
 def fetch_attendance_data(url: str) -> Dict[str, Any]:
     try:
         token = generate_auth_token(ESP_SECRET, SERVER_SECRET)
         headers = {'x-esp32-token': token} if token else {}
-        if token: print(f"🔐 [Auth] Using token: {token}")
+        if token: print(f"  Using token: {token}")
         response = requests.get(url, headers=headers, timeout=API_TIMEOUT)
         response.raise_for_status()
         return response.json()
@@ -93,14 +76,13 @@ def fetch_attendance_data(url: str) -> Dict[str, Any]:
         print(f"Error fetching data from API: {e}\nContinuing with an empty dataset.")
         return {'data': []}
 
-# --- Data Processing ---
 def get_month_dates(year: int, month: int) -> List[datetime]:
     try:
         start_date = datetime(year, month, 1)
         days_in_month = pd.Period(f'{year}-{month}').days_in_month
         return [start_date + pd.Timedelta(days=i) for i in range(days_in_month)]
     except ValueError:
-        print(f"❌ Invalid year ({year}) or month ({month}). Exiting.")
+        print(f" Invalid year ({year}) or month ({month}). Exiting.")
         return []
 
 def process_payload(payload: Dict[str, Any], dates: List[datetime]) -> pd.DataFrame:
@@ -120,7 +102,6 @@ def process_payload(payload: Dict[str, Any], dates: List[datetime]) -> pd.DataFr
     return df if df.empty else df.sort_values(by="No.")
 
 def map_financial_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Maps the static financial data (salaries, allowances, etc.) to each employee."""
     if df.empty: return df
     
     def map_data(data_dict):
@@ -134,7 +115,6 @@ def map_financial_data(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-# --- Excel Sheet Creation ---
 def style_cell(cell, font: Font, alignment: Alignment, fill: Optional[PatternFill] = None, border: Optional[Border] = None):
     cell.font, cell.alignment = font, alignment
     if fill: cell.fill = fill
@@ -194,7 +174,7 @@ def populate_attendance_data(ws, df: pd.DataFrame, dates: List[datetime], today:
                 full_day_minutes, half_day_minutes = FULL_DAY_HOURS * 60, (FULL_DAY_HOURS * 60) / 2
                 actual_minutes_formula = f'ROUND(({co_ref}-{ci_ref})*1440,2)'
                 minutes_formula = (f'=IF(OR({ci_ref}="-",{co_ref}="-",{co_ref}<{ci_ref}),0,'
-                                 f'IF({actual_minutes_formula}>={half_day_minutes},{full_day_minutes},{actual_minutes_formula}))')
+                                   f'IF({actual_minutes_formula}>={half_day_minutes},{full_day_minutes},{actual_minutes_formula}))')
 
             mins_cell = ws.cell(row_mins, col, minutes_formula)
             mins_cell.number_format = '#,##0.00'
@@ -212,13 +192,11 @@ def create_pivoted_summary(ws, df: pd.DataFrame, month_dates: List[datetime], st
     style_cell(ws.cell(start_row, start_col), HEADER_FONT, CENTER_ALIGN, FINANCIAL_HEADER_FILL)
     ws.merge_cells(start_row=start_row, start_column=start_col, end_row=start_row, end_column=start_col + len(df))
 
-    # Row Headers (Metrics)
     headers = ["ID", "Name", "Presence", "Absence", "Basic Salary", "Total Days", "Payable Days", "Per Day Amt",
                "Per Min Wage", "Total Mins", "Gross Salary", "Short Hour Deduct.", "Earned Salary", "In Hand Salary"]
     for i, h in enumerate(headers):
         cell = ws.cell(row=start_row + 2 + i, column=start_col)
         cell.value = h
-        # Special styling for the 'In Hand Salary' header
         if h == "In Hand Salary":
             style_cell(cell, IN_HAND_SALARY_HEADER_FONT, Alignment(horizontal="right"), IN_HAND_SALARY_FILL, THIN_BORDER)
         else:
@@ -228,26 +206,21 @@ def create_pivoted_summary(ws, df: pd.DataFrame, month_dates: List[datetime], st
 
     num_dates = len(month_dates)
     
-    # Column Headers (Employees) and Data
     for i, (_, emp_row) in enumerate(df.iterrows()):
         current_col = start_col + 1 + i
         
-        # --- Formula Generation ---
         main_table_col_letter = get_column_letter(3 + i)
         full_range = f"{main_table_col_letter}6:{main_table_col_letter}{5 + (num_dates * 3)}"
         start_cell_full_range = f"{main_table_col_letter}6"
         
-        # Helper to get current column's cell coordinates
         def cc(row_idx): return get_column_letter(current_col) + str(start_row + 2 + row_idx)
 
-        # Static Data (ID & Name) are handled in the styling loop below
         
-        # Formulas
-        ws.cell(row=start_row + 4, column=current_col, value=f'=SUMPRODUCT(--(MOD(ROW({full_range})-ROW({start_cell_full_range}),3)=2),--({full_range}>0))') # Presence
-        ws.cell(row=start_row + 5, column=current_col, value=f"={cc(5)}-{cc(2)}") # Absence
+        ws.cell(row=start_row + 4, column=current_col, value=f'=SUMPRODUCT(--(MOD(ROW({full_range})-ROW({start_cell_full_range}),3)=2),--({full_range}>0))')
+        ws.cell(row=start_row + 5, column=current_col, value=f"={cc(5)}-{cc(2)}")
         ws.cell(row=start_row + 6, column=current_col, value=emp_row['monthly_salary']).number_format = '"₹"#,##0.00'
-        ws.cell(row=start_row + 7, column=current_col, value=num_dates) # Total Days
-        ws.cell(row=start_row + 8, column=current_col, value=f"={cc(2)}") # Payable Days
+        ws.cell(row=start_row + 7, column=current_col, value=num_dates)
+        ws.cell(row=start_row + 8, column=current_col, value=f"={cc(2)}")
         ws.cell(row=start_row + 9, column=current_col, value=f"=IF({cc(5)}>0,{cc(4)}/{cc(5)},0)").number_format = '"₹"#,##0.00'
         ws.cell(row=start_row + 10, column=current_col, value=f"=IF({cc(5)}>0,{cc(4)}/({cc(5)}*{FULL_DAY_HOURS}*60),0)").number_format = '"₹"#,##0.0000'
         ws.cell(row=start_row + 11, column=current_col, value=f'=SUMPRODUCT(--(MOD(ROW({full_range})-ROW({start_cell_full_range}),3)=2),{full_range})').number_format = '#,##0.00'
@@ -255,28 +228,24 @@ def create_pivoted_summary(ws, df: pd.DataFrame, month_dates: List[datetime], st
         ws.cell(row=start_row + 13, column=current_col, value=f"=MAX(0, ({cc(6)}*{FULL_DAY_HOURS}*60 - {cc(9)})*{cc(8)})").number_format = '"₹"#,##0.00'
         ws.cell(row=start_row + 14, column=current_col, value=f"={cc(10)}-{cc(11)}").number_format = '"₹"#,##0.00'
         
-        deductions_table_start_col = start_col + len(df) + 2 
+        deductions_table_start_col = start_col + len(df) + 2
         allowance_ref = get_column_letter(deductions_table_start_col + 2) + str(start_row + 3 + i)
         deductions_total_ref = get_column_letter(deductions_table_start_col + 6) + str(start_row + 3 + i)
         ws.cell(row=start_row + 15, column=current_col, value=f"={cc(12)}+{allowance_ref}-{deductions_total_ref}").number_format = '"₹"#,##0.00'
 
-        # --- Styling Loop ---
-        for r_idx in range(2, 16): # Loop through all metric rows
+        for r_idx in range(2, 16):
             cell = ws.cell(row=start_row + r_idx, column=current_col)
-            fill = None # Default to no fill
+            fill = None
             
-            # Static data for ID and Name
             if r_idx == 2: cell.value = emp_row["No."]
-            if r_idx == 3: 
+            if r_idx == 3:
                 cell.value = emp_row["Name"]
                 fill = NAME_CELL_FILL
             
-            # Special fill for In Hand Salary
             if r_idx == 15:
                 fill = IN_HAND_SALARY_FILL
 
             style_cell(cell, DATA_FONT, CENTER_ALIGN, fill, THIN_BORDER)
-
 
 def create_deductions_table(ws, df: pd.DataFrame, start_col: int):
     start_row = 4
@@ -308,19 +277,16 @@ def create_deductions_table(ws, df: pd.DataFrame, start_col: int):
             style_cell(ws.cell(r, start_col + c_idx), DATA_FONT, CENTER_ALIGN, None, THIN_BORDER)
 
 def finalize_styles(ws, num_main_cols: int):
-    # Main table
     ws.column_dimensions['A'].width, ws.column_dimensions['B'].width = 10, 15
     for i in range(3, num_main_cols + 1):
         ws.column_dimensions[get_column_letter(i)].width = 20
     
-    # Dynamically set width for all summary columns
     for i in range(num_main_cols + 1, num_main_cols + 30):
         ws.column_dimensions[get_column_letter(i)].width = 18
 
     ws.freeze_panes = get_column_letter(3) + "6"
     ws.sheet_view.show_grid_lines = False
 
-# --- Main Execution ---
 def get_user_date_input() -> (Optional[int], Optional[int]):
     today = datetime.now()
     default_year, default_month = today.year, today.month
@@ -335,7 +301,7 @@ def get_user_date_input() -> (Optional[int], Optional[int]):
         return default_year, default_month
 
 def main():
-    print("🚀 Starting attendance report generation...")
+    print(" Starting attendance report generation...")
     year, month = get_user_date_input()
     if not (year and month): return
     month_dates = get_month_dates(year, month)
@@ -346,7 +312,7 @@ def main():
     payload = fetch_attendance_data(API_URL)
     df = process_payload(payload, month_dates)
     
-    if df.empty: print("⚠️ No employee data. Report will have headers only.")
+    if df.empty: print(" No employee data. Report will have headers only.")
     else: df = map_financial_data(df)
 
     wb = Workbook()
@@ -358,7 +324,7 @@ def main():
     create_table_headers(ws, df)
     
     num_main_cols = 2 + len(df) if not df.empty else 2
-    summary_start_col = num_main_cols + 2 # Add a gap column
+    summary_start_col = num_main_cols + 2
     create_pivoted_summary(ws, df, month_dates, summary_start_col)
 
     deductions_start_col = summary_start_col + len(df) + 2 if not df.empty else summary_start_col + 2
@@ -370,11 +336,9 @@ def main():
 
     try:
         wb.save(OUTPUT_FILENAME)
-        print(f"\n✅ Success! Report saved as '{OUTPUT_FILENAME}'")
+        print(f"\n Success! Report saved as '{OUTPUT_FILENAME}'")
     except IOError as e:
-        print(f"\n❌ Error saving file: {e}")
+        print(f"\n Error saving file: {e}")
 
 if __name__ == "__main__":
     main()
-
-
