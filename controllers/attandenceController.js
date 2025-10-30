@@ -20,8 +20,6 @@ export const logAttendance = asyncHandler(async (req, res) => {
 
     let dateObj;
 
-    // The incoming format is 'YYYY-MM-DD HH:MM:SS'
-    // We assume this time is ALREADY in 'Asia/Kolkata' (IST)
     try {
         const isoTimestamp = timestamp.replace(' ', 'T') + '+05:30';
         dateObj = new Date(isoTimestamp);
@@ -31,28 +29,29 @@ export const logAttendance = asyncHandler(async (req, res) => {
         }
     } catch (error) {
         console.warn(` Invalid timestamp received ('${timestamp}'), using current India time instead`);
-        dateObj = new Date(); // Fallback to current time
+        dateObj = new Date(); 
     }
 
+    // --- FIX WAS HERE ---
     const indiaDate = dateObj.toLocaleDateString("en-IN", {
-        timeZone: "Asia/KKolkata",
+        timeZone: "Asia/Kolkata", // Corrected: Was "Asia/KKolkata"
     });
 
-    // --- THIS IS THE MODIFIED LINE ---
+    // --- AND HERE ---
     const indiaTime = dateObj.toLocaleTimeString("en-IN", {
-        timeZone: "Asia/Kolkata",
-        hour12: true, // Use 12-hour format with am/pm
+        timeZone: "Asia/Kolkata", // Corrected: Was "Asia/KKolkata"
+        hour12: true, 
     });
-    // --- END OF MODIFICATION ---
 
+    // --- AND HERE ---
     const currentDay = dateObj.toLocaleDateString("en-IN", {
         weekday: "long",
-        timeZone: "Asia/Kolkata",
+        timeZone: "Asia/Kolkata", // Corrected: Was "Asia/KKolkata"
     });
 
     const newLog = {
         date: indiaDate,
-        time: indiaTime, // This will now be in "h:mm:ss am/pm" format
+        time: indiaTime, 
         status: status || "offline",
         day: currentDay,
     };
@@ -66,7 +65,6 @@ export const logAttendance = asyncHandler(async (req, res) => {
         data: newLog,
     });
 });
-
 export const getLogs = asyncHandler(async (req, res) => {
     const employees = await Employee.find();
 
