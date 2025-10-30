@@ -1,6 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import Employee from "../models/Employee.js";
-
 const normalizeUid = (uid) => uid.replace(/\s+/g, "").toUpperCase();
 
 export const logAttendance = asyncHandler(async (req, res) => {
@@ -19,17 +18,44 @@ export const logAttendance = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, error: "Employee not found" });
     }
 
-    let dateObj = new Date(timestamp);
-    if (isNaN(dateObj.getTime())) {
-        console.warn(" Invalid timestamp received, using current India time instead");
-        dateObj = new Date();
+    // --- MODIFICATION START ---
+    
+    let dateObj;
+
+    // The incoming format is 'YYYY-MM-DD HH:MM:SS'
+    // We assume this time is ALREADY in 'Asia/Kolkata' (IST)
+    // To make new Date() parse it correctly regardless of server timezone,
+    // we format it as a full ISO string with the IST offset (+05:30).
+    try {
+        const isoTimestamp = timestamp.replace(' ', 'T') + '+05:30';
+        dateObj = new Date(isoTimestamp);
+
+        if (isNaN(dateObj.getTime())) {
+            // Throw an error to be caught by the catch block
+            throw new Error("Invalid timestamp format");
+        }
+    } catch (error) {
+        console.warn(` Invalid timestamp received ('${timestamp}'), using current India time instead`);
+        dateObj = new Date(); // Fallback to current time
     }
 
-    const indiaDate = dateObj.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" });
-    const indiaTime = dateObj.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
+    // --- MODIFICATION END ---
+
+
+    // This section now works correctly because dateObj is the correct
+    // universal moment in time, regardless of the server's local timezone.
+    const indiaDate = dateObj.toLocaleDateString("en-IN", {
+        timeZone: "Asia/Kolkata",
+    });
+
+    const indiaTime = dateObj.toLocaleTimeString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour12: false, // Use 24-hour format to match incoming data
+    });
+
     const currentDay = dateObj.toLocaleDateString("en-IN", {
         weekday: "long",
-        timeZone: "Asia/Kolkata"
+        timeZone: "Asia/Kolkata",
     });
 
     const newLog = {
@@ -48,7 +74,6 @@ export const logAttendance = asyncHandler(async (req, res) => {
         data: newLog,
     });
 });
-
 
 export const getLogs = asyncHandler(async (req, res) => {
     const employees = await Employee.find();
