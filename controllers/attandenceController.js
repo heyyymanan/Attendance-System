@@ -18,20 +18,15 @@ export const logAttendance = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, error: "Employee not found" });
     }
 
-    // --- MODIFICATION START ---
-    
     let dateObj;
 
     // The incoming format is 'YYYY-MM-DD HH:MM:SS'
     // We assume this time is ALREADY in 'Asia/Kolkata' (IST)
-    // To make new Date() parse it correctly regardless of server timezone,
-    // we format it as a full ISO string with the IST offset (+05:30).
     try {
         const isoTimestamp = timestamp.replace(' ', 'T') + '+05:30';
         dateObj = new Date(isoTimestamp);
 
         if (isNaN(dateObj.getTime())) {
-            // Throw an error to be caught by the catch block
             throw new Error("Invalid timestamp format");
         }
     } catch (error) {
@@ -39,19 +34,16 @@ export const logAttendance = asyncHandler(async (req, res) => {
         dateObj = new Date(); // Fallback to current time
     }
 
-    // --- MODIFICATION END ---
-
-
-    // This section now works correctly because dateObj is the correct
-    // universal moment in time, regardless of the server's local timezone.
     const indiaDate = dateObj.toLocaleDateString("en-IN", {
-        timeZone: "Asia/Kolkata",
+        timeZone: "Asia/KKolkata",
     });
 
+    // --- THIS IS THE MODIFIED LINE ---
     const indiaTime = dateObj.toLocaleTimeString("en-IN", {
         timeZone: "Asia/Kolkata",
-        hour12: false, // Use 24-hour format to match incoming data
+        hour12: true, // Use 12-hour format with am/pm
     });
+    // --- END OF MODIFICATION ---
 
     const currentDay = dateObj.toLocaleDateString("en-IN", {
         weekday: "long",
@@ -60,7 +52,7 @@ export const logAttendance = asyncHandler(async (req, res) => {
 
     const newLog = {
         date: indiaDate,
-        time: indiaTime,
+        time: indiaTime, // This will now be in "h:mm:ss am/pm" format
         status: status || "offline",
         day: currentDay,
     };
