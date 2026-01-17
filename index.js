@@ -6,15 +6,28 @@ import fs from "fs";
 import https from "https";
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = [
+  'https://admins.bynatablet.in',
+  'https://localhost:3001',
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS: ' + origin));
+    }
+  },
+  credentials: true
+}));
+
+
 app.use(express.json());
 
 const PORT = 1000;
 
-// const options = {
-//     key: fs.readFileSync("key.pem"),
-//     cert: fs.readFileSync("cert.pem"),
-// };
 
 const startServer = async () => {
     try {

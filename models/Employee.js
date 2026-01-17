@@ -29,6 +29,10 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    salary: {
+        type: Number,
+        required: true,
+    },
     logs: [logSchema], 
 }, {
     timestamps: true,
